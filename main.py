@@ -128,9 +128,10 @@ def reportHealth(username, hr,  bps, bpd, glucose):
         filewriter.writerow([nowStr, hr, bps, bpd, glucose])
     print("Success! Data reported.")
 
-def updateMedSummary():
+def updateMedSummary(username):
+    print('Updating summary')
     out = ''
-    with open(f'{user}MEDS.csv', 'r', newline='') as csvfile:
+    with open(f'{username}MEDS.csv', 'r') as csvfile:
         reader = csv.reader(csvfile)
         count = 0
 
@@ -142,7 +143,9 @@ def updateMedSummary():
                 if (count2 <= 2):
                     count2 += 1
                 else:
-                    out += f'{row[i],}'
+                    out += f'{row[count2],}'
+                    count2+=1
+            out += '\n\n'
 
     return out
 
@@ -207,7 +210,7 @@ layoutSignup = [
 
 layoutMain = [[sg.Push(), sg.Text(f'{projectName}', key='-TEXT1-'), sg.Push()],
               [sg.VPush()],
-              [sg.Output(size = (300, 30),font=('Helvetica 10'))],
+              #[sg.Output(size = (300, 30),font=('Helvetica 10'))],
               [sg.VPush()],
               [sg.Button('Enter', key='-ENTERBTN-', size=button_size), sg.Multiline(size=(45, 2), key='-INPUT-')],
               [sg.Push(), sg.Button('Report', key='-BTN1-', size=button_size),
@@ -216,8 +219,8 @@ layoutMain = [[sg.Push(), sg.Text(f'{projectName}', key='-TEXT1-'), sg.Push()],
 
 layoutMeds = [
             [sg.Push(), sg.Text("Medication Summary"), sg.Push()],
-            [sg.Multiline("", size =(400,400), key = '-MEDSUM-')],
-            [sg.Push(), sg.Button("New",  key = '-NEWMEDS-'), sg.Button("Return", key = '-MEDSRETURN')],
+            [sg.Multiline("", size =(400,10), key = '-MEDSUM-')],
+            [sg.Push(), sg.Button("New",  key = '-NEWMEDS-'), sg.Button("Return", key = '-MEDSRETURN-')],
 
 ]
 
@@ -232,6 +235,15 @@ layoutReport = [
 
 layoutData = []
 
+layoutNewMeds = [
+            [sg.Push(), sg.Text("New Medication", font = ('Helvetica 15')), sg.Push()],
+            [sg.Push(), sg.Text("Name: "), sg.Input(key = '-MEDNAMEFIELD-'), sg.Push()],
+            [sg.Push(), sg.Text("Dosage "), sg.Input(key = '-MEDDOSEFIELD-'), sg.Push()],
+            [sg.Push(), sg.Text("Daily Frequency: "), sg.Input(key = '-MEDFREQFIELD-'), sg.Push()],
+            [sg.Push(), sg.Text("Times: "), sg.Input(key = '-MEDTIMEFIELD-'), sg.Push()],
+            [sg.Push(), sg.Button("Submit", key = '-SUBMITNEWMED-'), sg.Button('Return', key = '-RETURNNEWMED-'), sg.Push()],
+]
+
 layout = [[sg.Column(layoutOpen, key='-COL1-'),
            sg.Column(layoutLogin, visible=False, key='-COL2-'),
            sg.Column(layoutSignup, visible=False, key='-COL3-'),
@@ -239,6 +251,7 @@ layout = [[sg.Column(layoutOpen, key='-COL1-'),
            sg.Column(layoutMeds, visible=False, key='-COL5-'),
            sg.Column(layoutReport, visible=False, key='-COL6-'),
            sg.Column(layoutData, visible=False, key='-COL7-'),
+           sg.Column(layoutNewMeds, visible=False, key='-COL8-'),
            ]]
 
 chat = []
@@ -308,7 +321,7 @@ async def main():
         if event == '-BTN3-':
             window['-COL4-'].update(visible=False)
             window['-COL5-'].update(visible=True)
-            window['-MEDSUM-'].update(updateMedSummary())
+            window['-MEDSUM-'].update(updateMedSummary(user))
 
         if event in ['-ENTERBTN-']:
 
@@ -331,7 +344,7 @@ async def main():
                 ## swich to medication page
                 window['-COL4-'].update(visible=False)
                 window['-COL5-'].update(visible=True)
-                window['-MEDSUM-'].update(updateMedSummary())
+                window['-MEDSUM-'].update(updateMedSummary(user))
 
             if label == 'record':
                 ## switch to records tab
@@ -349,6 +362,34 @@ async def main():
         if event == '-RETURNREPORT-':
             window['-COL6-'].update(visible=False)
             window['-COL4-'].update(visible=True)
+
+
+        ## events for medication page
+        if event == '-MEDSRETURN-':
+            window['-COL5-'].update(visible=False)
+            window['-COL4-'].update(visible=True)
+
+        if event == '-NEWMEDS-':
+            window['-COL5-'].update(visible=False)
+            window['-COL8-'].update(visible=True)
+
+
+        ## events for new medication
+        if event == '-SUBMITNEWMED-':
+            writeMedication(user, values["-MEDNAMEFIELD-"],
+                            values["-MEDDOSEFIELD-"],
+                            values["-MEDFREQFIELD-"],
+                            values["-MEDTIMEFIELD-"].split(","))
+            window['-COL8-'].update(visible=False)
+            window['-COL5-'].update(visible=True)
+            window['-MEDSUM-'].update(updateMedSummary(user))
+
+
+        if event == '-RETURNNEWMED-':
+            window['-COL8-'].update(visible=False)
+            window['-COL5-'].update(visible=True)
+
+
 
 async def arduinoStuff():
     board.digtal.write[LEDPin].write(1)
