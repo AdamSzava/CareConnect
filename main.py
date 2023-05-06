@@ -9,14 +9,17 @@ import board
 import asyncio
 import time
 import datetime
+import serial
 #import pulseio
 # see all the themes
 # sg.theme_previewer()
 LEDPin = 4
 buzzerPin = 'd:3:p'
 projectName = 'CareConnect'
+
 co = cohere.Client('BAyOeaK39IacOJbdXERo5qSMOTu56uWCvEzei8zt')
-board = pyf.Arduino('COM4')
+#board = pyf.Arduino('COM4')
+#ser = serial.Serial('COM4', 9600)
 
 
 
@@ -125,24 +128,47 @@ def reportHealth(username, hr,  bps, bpd, glucose):
         filewriter.writerow([nowStr, hr, bps, bpd, glucose])
     print("Success! Data reported.")
 
+def updateMedSummary():
+    out = ''
+    with open(f'{user}MEDS.csv', 'r', newline='') as csvfile:
+        reader = csv.reader(csvfile)
+        count = 0
+
+        for row in reader:
+            count +=1
+            out += (f'Medication {count}: {row[0]}\nDosage: {row[1]}\nDaily Frequency: {row[2]}\nTimes: ')
+            count2 = 0
+            for i in row:
+                if (count2 <= 2):
+                    count2 += 1
+                else:
+                    out += f'{row[i],}'
+
+    return out
+
+
+
 def graphs():
     return
 
-def heartRateSensor():
-    print("in func")
-    it = pyf.util.Iterator(board)
-    it.start()
-    analogInput = board.get_pin('a:0:i')
-
-    while True:
-        analogValue = analogInput.read()
-        if analogValue is not None:
-            print(f'A0 Values: {analogValue}')
-            heartRate = analogValue * 100
-            print(heartRate)
-        else:
-            print("sleep")
-            time.sleep(3)
+# def heartRateSensor():
+#     print("in func")
+#     it = pyf.util.Iterator(board)
+#     it.start()
+#     analogInput = board.get_pin('a:0:i')
+#
+#     while True:
+#         analogValue =ser.readline()
+#         heartRate = analogValue * 100/1023
+#         print(heartRate)
+#         # analogValue = analogInput.read()
+#         # if analogValue is not None:
+#         #     print(f'A0 Values: {analogValue}')
+#         #     heartRate = analogValue * 100
+#         #     print(heartRate)
+#         # else:
+#         #     print("sleep")
+#         #     time.sleep(3)
 
 
 sg.theme('LightBlue')  # Add a touch of color
@@ -181,7 +207,7 @@ layoutSignup = [
 
 layoutMain = [[sg.Push(), sg.Text(f'{projectName}', key='-TEXT1-'), sg.Push()],
               [sg.VPush()],
-              #[sg.Output(size = (300, 30),font=('Helvetica 10'))],
+              [sg.Output(size = (300, 30),font=('Helvetica 10'))],
               [sg.VPush()],
               [sg.Button('Enter', key='-ENTERBTN-', size=button_size), sg.Multiline(size=(45, 2), key='-INPUT-')],
               [sg.Push(), sg.Button('Report', key='-BTN1-', size=button_size),
@@ -189,8 +215,9 @@ layoutMain = [[sg.Push(), sg.Text(f'{projectName}', key='-TEXT1-'), sg.Push()],
                sg.Button('Meds', key='-BTN3-', size=button_size), sg.Push()]]
 
 layoutMeds = [
-
-
+            [sg.Push(), sg.Text("Medication Summary"), sg.Push()],
+            [sg.Multiline("", size =(400,400), key = '-MEDSUM-')],
+            [sg.Push(), sg.Button("New",  key = '-NEWMEDS-'), sg.Button("Return", key = '-MEDSRETURN')],
 
 ]
 
@@ -278,7 +305,13 @@ async def main():
             window['-COL4-'].update(visible=False)
             window['-COL6-'].update(visible=True)
 
+        if event == '-BTN3-':
+            window['-COL4-'].update(visible=False)
+            window['-COL5-'].update(visible=True)
+            window['-MEDSUM-'].update(updateMedSummary())
+
         if event in ['-ENTERBTN-']:
+
             text = values['-INPUT-']
 
             chat.append([0, text])
@@ -296,7 +329,10 @@ async def main():
                 print('')
             if label == 'medication':
                 ## swich to medication page
-                pass
+                window['-COL4-'].update(visible=False)
+                window['-COL5-'].update(visible=True)
+                window['-MEDSUM-'].update(updateMedSummary())
+
             if label == 'record':
                 ## switch to records tab
                 pass
@@ -320,9 +356,9 @@ async def arduinoStuff():
     buzzer.Write(16)
 
 
-print(heartRateSensor())
+#print(heartRateSensor())
 
-#asyncio.run(main())
+asyncio.run(main())
 #asyncio.run(print(heartRateSensor()))
 #pool.shutdown(block = False)
 window.close()
