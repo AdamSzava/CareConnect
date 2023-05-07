@@ -20,7 +20,7 @@ LEDPin = 4
 buzzerPin = 'd:3:p'
 projectName = 'CareConnect'
 
-co = cohere.Client('BAyOeaK39IacOJbdXERo5qSMOTu56uWCvEzei8zt')
+co = cohere.Client('APIKEYHERE')
 #eng = matlab.engine.start_matlab()
 board = pyf.Arduino('COM4')
 #ser = serial.Serial('COM4', 9600)
