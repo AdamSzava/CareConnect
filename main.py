@@ -184,6 +184,7 @@ def checkMedication(username):
         now = datetime.datetime.now()
         nowStr = now.strftime("%H:%M")
         if nowStr in times:
+
             arduinoStuff()
         time.sleep(10)
 
@@ -274,10 +275,10 @@ layoutMeds = [
 layoutReport = [
 [sg.Push(), sg.Text(f'{projectName}', key='-TEXT1-'),sg.Image('logoS.png', size=(30,30)),sg.Push()],
             [sg.Push(), sg.Text("Report Data", font = ('Helvetica 15')), sg.Push()],
-            [sg.Push(), sg.Text("Heartrate: "), sg.Input(key = '-HRFIELD-'), sg.Text("bpm"), sg.Push()],
-            [sg.Push(), sg.Text("Blood Pressure (sys): "), sg.Input(key = '-BPSFIELD-'), sg.Text("mmHg"), sg.Push()],
-            [sg.Push(), sg.Text("Blood Pressure (dia): "), sg.Input(key = '-BPDFIELD-'), sg.Text("mmHg"), sg.Push()],
-            [sg.Push(), sg.Text("Glucose: "), sg.Input(key = '-GLUFIELD-'), sg.Text("mmol/L"), sg.Push()],
+            [sg.Push(), sg.Text("Heart Rate (bpm): "), sg.Input(key = '-HRFIELD-'), sg.Text("bpm"), sg.Push()],
+            [sg.Push(), sg.Text("Blood Pressure (sys) (mmHg): "), sg.Input(key = '-BPSFIELD-'), sg.Text("mmHg"), sg.Push()],
+            [sg.Push(), sg.Text("Blood Pressure (dia) (mmHg): "), sg.Input(key = '-BPDFIELD-'), sg.Text("mmHg"), sg.Push()],
+            [sg.Push(), sg.Text("Glucose (mmol/L): "), sg.Input(key = '-GLUFIELD-'), sg.Text("mmol/L"), sg.Push()],
             [sg.Push(), sg.Button("Submit", key = '-SUBMITREPORT-'), sg.Button('Return', key = '-RETURNREPORT-'), sg.Push()],
 ]
 
