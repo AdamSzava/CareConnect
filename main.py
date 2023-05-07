@@ -126,7 +126,7 @@ def reportHealth(username, hr,  bps, bpd, glucose):
     print("Success! Data reported.")
 
 def updateMedSummary(username):
-    print('Updating summary')
+    #print('Updating summary')
     out = ''
     with open(f'{username}MEDS.csv', 'r') as csvfile:
         reader = csv.reader(csvfile)
@@ -141,9 +141,10 @@ def updateMedSummary(username):
                 if (count2 <= 2):
                     count2 += 1
                 else:
-                    out += f'{row[count2],}'
+                    #print(row[count2])
+                    out += f'{row[count2].strip("),"),}'
                     times.append(row[count2])
-                    count2+=1
+                    count2 += 1
 
             out += '\n\n'
     return out
@@ -156,6 +157,7 @@ def graphs(username):
 
 def checkMedication(username):
     while True:
+        #print('Checking Medication')
         now = datetime.datetime.now()
         nowStr = now.strftime("%H:%M")
         if nowStr in times:
@@ -195,14 +197,22 @@ sg.set_options(font='Calibri 20')
 
 button_size = (10, 3)
 
+layoutOpen0 = [
+        [sg.Text(f"{projectName}", font = 'Helvetica 30', pad = (50,0))],
+        [sg.Image('logo.png', size=(300,300))],
+        [sg.Text("Your AI Health Companion")],
+        [sg.Button("Login", key = '-L1LOGIN-'), sg.Button("Sign Up", key = '-L1SIGNUP-')]
+]
+
 layoutOpen = [
-        [sg.Column([[sg.Text(f"{projectName}", font = 'Helvetica 30')]], justification = 'center')],
-        [sg.Column([[sg.Image('logo.png', size=(300,300))]], justification = 'center')],
-        [sg.Text("Temp")],
-        [sg.Push(), sg.Button("Login", key = '-L1LOGIN-'), sg.Button("Sign Up", key = '-L1SIGNUP-'), sg.Push()]
+    [sg.VPush()],
+    [sg.Column(layoutOpen0, element_justification='center')],
+    [sg.VPush()]
+
 ]
 
 layoutLogin = [
+[sg.Push(), sg.Text(f'{projectName}', key='-TEXT1-'),sg.Image('logoS.png', size=(30,30)),sg.Push()],
     [sg.VPush()],
     [sg.Push(), sg.Text("Username: "), sg.Input(key='-LUSERFIELD-'), sg.Push()],
     [sg.Push(), sg.Text("Password: "), sg.Input(key='-LPASSFIELD-'), sg.Push()],
@@ -212,6 +222,7 @@ layoutLogin = [
 ]
 
 layoutSignup = [
+[sg.Push(), sg.Text(f'{projectName}', key='-TEXT1-'),sg.Image('logoS.png', size=(30,30)),sg.Push()],
     [sg.VPush()],
     [sg.Push(),  sg.Text("Username: "),sg.Input(key = '-SUSERFIELD-'), sg.Push()],
     [sg.Push(),  sg.Text("Password: "),sg.Input(key = '-SPASSFIELD-'), sg.Push()],
@@ -220,16 +231,17 @@ layoutSignup = [
     [sg.VPush()]
 ]
 
-layoutMain = [[sg.Push(), sg.Text(f'{projectName}', key='-TEXT1-'), sg.Push()],
+layoutMain = [[sg.Push(), sg.Text(f'{projectName}', key='-TEXT1-'),sg.Image('logoS.png', size=(30,30)),sg.Push()],
               [sg.VPush()],
               [sg.Output(size = (300, 30),font=('Helvetica 10'))],
               [sg.VPush()],
-              [sg.Button('Enter', key='-ENTERBTN-', size=button_size), sg.Multiline(size=(45, 2), key='-INPUT-')],
-              [sg.Push(), sg.Button('Report', key='-BTN1-', size=button_size),
-               sg.Button('Records', key='-BTN2-', size=button_size),
-               sg.Button('Meds', key='-BTN3-', size=button_size), sg.Push()]]
+              [sg.Button('Enter', key='-ENTERBTN-', size=(7,2)), sg.Multiline(size=(45, 2), key='-INPUT-')],
+              [sg.Push(), sg.Button('Report', key='-BTN1-', size=button_size, pad = (2,0)), sg.Push(),
+               sg.Button('Records', key='-BTN2-', size=button_size, pad = (2,0)), sg.Push(),
+               sg.Button('Meds', key='-BTN3-', size=button_size, pad = (2,0)), sg.Push()]]
 
 layoutMeds = [
+[sg.Push(), sg.Text(f'{projectName}', key='-TEXT1-'),sg.Image('logoS.png', size=(30,30)),sg.Push()],
             [sg.Push(), sg.Text("Medication Summary"), sg.Push()],
             [sg.Multiline("", size =(400,10), key = '-MEDSUM-')],
             [sg.Push(), sg.Button("New",  key = '-NEWMEDS-'), sg.Button("Return", key = '-MEDSRETURN-')],
@@ -237,6 +249,7 @@ layoutMeds = [
 ]
 
 layoutReport = [
+[sg.Push(), sg.Text(f'{projectName}', key='-TEXT1-'),sg.Image('logoS.png', size=(30,30)),sg.Push()],
             [sg.Push(), sg.Text("Report Data", font = ('Helvetica 15')), sg.Push()],
             [sg.Push(), sg.Text("Heartrate: "), sg.Input(key = '-HRFIELD-'), sg.Text("bpm"), sg.Push()],
             [sg.Push(), sg.Text("Blood Pressure (sys): "), sg.Input(key = '-BPSFIELD-'), sg.Text("mmHg"), sg.Push()],
@@ -248,12 +261,15 @@ layoutReport = [
 layoutData = []
 
 layoutNewMeds = [
+    [sg.VPush()],
+[sg.Push(), sg.Text(f'{projectName}', key='-TEXT1-'),sg.Image('logoS.png', size=(30,30)),sg.Push()],
             [sg.Push(), sg.Text("New Medication", font = ('Helvetica 15')), sg.Push()],
             [sg.Push(), sg.Text("Name: "), sg.Input(key = '-MEDNAMEFIELD-'), sg.Push()],
-            [sg.Push(), sg.Text("Dosage "), sg.Input(key = '-MEDDOSEFIELD-'), sg.Push()],
+            [sg.Push(), sg.Text("Dosage(mg): "), sg.Input(key = '-MEDDOSEFIELD-'), sg.Push()],
             [sg.Push(), sg.Text("Daily Frequency: "), sg.Input(key = '-MEDFREQFIELD-'), sg.Push()],
             [sg.Push(), sg.Text("Times: "), sg.Input(key = '-MEDTIMEFIELD-'), sg.Push()],
             [sg.Push(), sg.Button("Submit", key = '-SUBMITNEWMED-'), sg.Button('Return', key = '-RETURNNEWMED-'), sg.Push()],
+            [sg.VPush()]
 ]
 
 layout = [[sg.Column(layoutOpen, key='-COL1-'),
@@ -269,12 +285,12 @@ layout = [[sg.Column(layoutOpen, key='-COL1-'),
 chat = []
 
 # Create the Window
-window = sg.Window(f'{projectName}', layout, size=(648, 1152), location=(0,0), finalize = True)
+window = sg.Window(f'{projectName}', layout, size=(648, 1152), location=(0,0), finalize = True, element_justification = 'center')
 print("Carey: \nWelcome to CareConnect, I'm Carey, your AI health counsellor. Type your medical prompt in the box below...\n"
-      "Here's some examples of things you can say:"
-      "'My head hurts, what are somethings I can do to help it?'"
-      "'Will staring at a computer all day long make me go blind?'"
-      "'I want to add a medication to my medication list'"
+      "Here are some examples of things you can say:\n"
+      "'My head hurts, what are some things I can do to help it?'\n"
+      "'Will staring at a computer all day long make me go blind?'\n"
+      "'I want to add a medication to my medication list'\n"
       )
 
 
@@ -306,8 +322,9 @@ async def main():
                 window['-COL4-'].update(visible=True)
 
                 user = values['-LUSERFIELD-']
+                #print(user)
                 updateMedSummary(user)
-                background_thread = threading.Thread(target=checkMedication, args=(user))
+                background_thread = threading.Thread(target=checkMedication, args=(user,))
                 background_thread.daemon = True
                 background_thread.start()
 
@@ -326,7 +343,12 @@ async def main():
                 window['-COL3-'].update(visible=False)
                 window['-COL4-'].update(visible=True)
 
-                user = values['-SUSERFIELD-']
+                user = str((values['-SUSERFIELD-']))
+                updateMedSummary(user)
+                background_thread = threading.Thread(target=checkMedication, args=(user,))
+                background_thread.daemon = True
+                background_thread.start()
+
             else:
                 window['-ERRORTXT2-'].update("Username already taken.", visible = True)
 
@@ -344,7 +366,7 @@ async def main():
             window['-COL4-'].update(visible=False)
             window['-COL5-'].update(visible=True)
             window['-MEDSUM-'].update(updateMedSummary(user))
-            print(times)
+            #print(times)
 
         if event in ['-ENTERBTN-']:
 
@@ -382,6 +404,10 @@ async def main():
             reportHealth(user, values["-HRFIELD-"], values["-BPSFIELD-"], values["-BPDFIELD-"], values["-GLUFIELD-"])
             window['-COL6-'].update(visible=False)
             window['-COL4-'].update(visible=True)
+            window['-HRFIELD-'].update('')
+            window['-BPSFIELD-'].update('')
+            window['-BPDFIELD-'].update('')
+            window['-GLUFIELD-'].update('')
         if event == '-RETURNREPORT-':
             window['-COL6-'].update(visible=False)
             window['-COL4-'].update(visible=True)
@@ -406,6 +432,10 @@ async def main():
             window['-COL8-'].update(visible=False)
             window['-COL5-'].update(visible=True)
             window['-MEDSUM-'].update(updateMedSummary(user))
+            window['-MEDNAMEFIELD-'].update('')
+            window['-MEDDOSEFIELD-'].update('')
+            window['-MEDFREQFIELD-'].update('')
+            window['-MEDTIMEFIELD-'].update('')
 
 
         if event == '-RETURNNEWMED-':
