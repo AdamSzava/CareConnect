@@ -8,8 +8,10 @@ import board
 #simplethreads.ThreadPool import ThreadPool
 import asyncio
 import time
+import threading
 import datetime
 import serial
+#import matlab.engine
 #import pulseio
 # see all the themes
 # sg.theme_previewer()
@@ -18,20 +20,15 @@ buzzerPin = 'd:3:p'
 projectName = 'CareConnect'
 
 co = cohere.Client('BAyOeaK39IacOJbdXERo5qSMOTu56uWCvEzei8zt')
-#board = pyf.Arduino('COM4')
+#eng = matlab.engine.start_matlab()
+board = pyf.Arduino('COM4')
 #ser = serial.Serial('COM4', 9600)
-
-
-
-#pool = ThreadPool(2)
-
-#pool.process(main)
-#pool.process()
-
-
-
+buzzer = board.get_pin(buzzerPin)
 
 user = ''
+
+
+times = []
 examples = [Example("i have a headache, what should i do?", "general help"),
             Example("i am bleeding", "general help"),
             Example("i have a cough", "general help"),
@@ -134,6 +131,7 @@ def updateMedSummary(username):
     with open(f'{username}MEDS.csv', 'r') as csvfile:
         reader = csv.reader(csvfile)
         count = 0
+        times.clear()
 
         for row in reader:
             count +=1
@@ -144,15 +142,29 @@ def updateMedSummary(username):
                     count2 += 1
                 else:
                     out += f'{row[count2],}'
+                    times.append(row[count2])
                     count2+=1
-            out += '\n\n'
 
+            out += '\n\n'
     return out
 
+def graphs(username):
+    #eng.workspace['username'] = username
+    #eng.run_script('healthGraphs.m')
+    pass
 
 
-def graphs():
-    return
+def checkMedication(username):
+    while True:
+        now = datetime.datetime.now()
+        nowStr = now.strftime("%H:%M")
+        if nowStr in times:
+            arduinoStuff()
+        time.sleep(10)
+
+
+
+
 
 # def heartRateSensor():
 #     print("in func")
@@ -210,7 +222,7 @@ layoutSignup = [
 
 layoutMain = [[sg.Push(), sg.Text(f'{projectName}', key='-TEXT1-'), sg.Push()],
               [sg.VPush()],
-              #[sg.Output(size = (300, 30),font=('Helvetica 10'))],
+              [sg.Output(size = (300, 30),font=('Helvetica 10'))],
               [sg.VPush()],
               [sg.Button('Enter', key='-ENTERBTN-', size=button_size), sg.Multiline(size=(45, 2), key='-INPUT-')],
               [sg.Push(), sg.Button('Report', key='-BTN1-', size=button_size),
@@ -257,7 +269,13 @@ layout = [[sg.Column(layoutOpen, key='-COL1-'),
 chat = []
 
 # Create the Window
-window = sg.Window(f'{projectName}', layout, size=(648, 1152), location=(0,0))
+window = sg.Window(f'{projectName}', layout, size=(648, 1152), location=(0,0), finalize = True)
+print("Carey: \nWelcome to CareConnect, I'm Carey, your AI health counsellor. Type your medical prompt in the box below...\n"
+      "Here's some examples of things you can say:"
+      "'My head hurts, what are somethings I can do to help it?'"
+      "'Will staring at a computer all day long make me go blind?'"
+      "'I want to add a medication to my medication list'"
+      )
 
 
 
@@ -288,6 +306,10 @@ async def main():
                 window['-COL4-'].update(visible=True)
 
                 user = values['-LUSERFIELD-']
+                updateMedSummary(user)
+                background_thread = threading.Thread(target=checkMedication, args=(user))
+                background_thread.daemon = True
+                background_thread.start()
 
             else:
                 window['-ERRORTXT1-'].update("Invalid Login.")
@@ -322,6 +344,7 @@ async def main():
             window['-COL4-'].update(visible=False)
             window['-COL5-'].update(visible=True)
             window['-MEDSUM-'].update(updateMedSummary(user))
+            print(times)
 
         if event in ['-ENTERBTN-']:
 
@@ -391,10 +414,15 @@ async def main():
 
 
 
-async def arduinoStuff():
-    board.digtal.write[LEDPin].write(1)
-    buzzer = board.get_pin(buzzerPin)
-    buzzer.Write(16)
+def arduinoStuff():
+    print("Arduino Activating")
+    board.digital[LEDPin].write(1)
+
+    buzzer.write(16)
+    time.sleep(3)
+    board.digital[LEDPin].write(0)
+    buzzer.write(0)
+
 
 
 #print(heartRateSensor())
@@ -402,4 +430,5 @@ async def arduinoStuff():
 asyncio.run(main())
 #asyncio.run(print(heartRateSensor()))
 #pool.shutdown(block = False)
+board.exit()
 window.close()
