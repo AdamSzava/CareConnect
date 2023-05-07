@@ -10,6 +10,7 @@ import asyncio
 import time
 import threading
 import datetime
+import matplotlib.pyplot as plt
 import serial
 #import matlab.engine
 #import pulseio
@@ -150,9 +151,31 @@ def updateMedSummary(username):
     return out
 
 def graphs(username):
-    #eng.workspace['username'] = username
-    #eng.run_script('healthGraphs.m')
-    pass
+    hr = []
+    bps = []
+    bpd = []
+    glu = []
+    with open(f'{username}DATA.csv', 'r') as csvfile:
+        reader = csv.reader(csvfile)
+        for row in reader:
+            hr.append(row[1])
+            bps.append(row[2])
+            bpd.append(row[3])
+            glu.append(row[4])
+    plt.figure()
+    plt.plot(hr)
+    plt.title("Heart Rate Records")
+    plt.ylabel("HeartRate (BPM)")
+    plt.figure()
+    plt.plot(bpd, label="Systolic Pressure")
+    plt.plot(bps, label="Diastolic Pressure")
+    plt.title("Blood Pressure Records")
+    plt.ylabel("Blood Pressure (mmHg)")
+    plt.figure()
+    plt.plot(glu)
+    plt.title("Blood Glucose Levls")
+    plt.ylabel("Blood Glucose Level (mmol/L)")
+    plt.show()
 
 
 def checkMedication(username):
@@ -361,6 +384,9 @@ async def main():
         if event == '-BTN1-':
             window['-COL4-'].update(visible=False)
             window['-COL6-'].update(visible=True)
+
+        if event == '-BTN2-':
+            graphs(user)
 
         if event == '-BTN3-':
             window['-COL4-'].update(visible=False)
